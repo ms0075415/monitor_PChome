@@ -1,5 +1,8 @@
-Flask
-flask-cors
-pandas
-python-docx
-xlsxwriter
+requests
+bs4
+schedule
+time
+logging
+os
+random
+datetime
