@@ -17,21 +17,19 @@ headers = {
     'Connection': 'keep-alive',
 }
 
-# URL
-url_Array = [
-    "https://24h.pchome.com.tw/prod/DGADJN-1900HJ9WF",
-    "https://24h.pchome.com.tw/prod/DGADJN-1900HJ9WI"
-]
-
 # 全局變量
 MAX_REQUESTS_PER_HOUR = 270
 request_count = 0
 start_time = time.time()
 
-
-
 # 配置日誌
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# URL
+url_Array = [
+    "https://24h.pchome.com.tw/prod/DGADJN-1900HJ9WF",
+    "https://24h.pchome.com.tw/prod/DGADJN-1900HJ9WI"
+]
 
 def get_urls_from_file():
     url_file = 'pchome_url.txt'
@@ -88,22 +86,24 @@ def check_website(url):
         
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        # 尋找 "已售完" 按鈕
-        sold_out_button = soup.find('button', class_='single_add_to_cart_button', string='已售完')
+        # 尋找 "立即購買" 按鈕
+        buy_now_button = soup.find('button', {'data-regression': 'product_button_buyNow'})
         
         current_time = datetime.now()
         
-        if sold_out_button:
-            # 找到 "已售完" 按鈕，表示商品正在補貨中
-            if current_time.minute == 0 and current_time.second in [1, 31]:
+        if buy_now_button:
+            # 檢查按鈕是否被禁用
+            if 'disabled' not in buy_now_button.attrs:
+                send_line_notify("產品可以立即購買了！", url)
+                send_line_notify("💎💎💎 PCHome 產品狀態已更改，產品可以立即購買了！ 💎💎💎", url)
+            elif current_time.minute == 0 and current_time.second in [1, 31]:
                 # 整點報告
-                send_line_notify(f"=== 官方網站整點報告：產品仍在補貨中 === 時間: {current_time.strftime('%Y-%m-%d %H:%M:%S')}", url)
+                send_line_notify(f"=== PCHome 整點報告：產品仍無法購買 === 時間: {current_time.strftime('%Y-%m-%d %H:%M:%S')}", url)
             else:
-                print(f"產品仍在補貨中 時間: {current_time.strftime('%Y-%m-%d %H:%M:%S')} URL: {url}")
+                print(f"產品仍無法購買 時間: {current_time.strftime('%Y-%m-%d %H:%M:%S')} URL: {url}")
         else:
-            # 沒有找到 "已售完" 按鈕，可能表示商品已經可以購買
-            send_line_notify("官方網站產品可能已經可以購買了！", url)
-            send_line_notify("💎💎💎 產品狀態已更改，產品可能已經可以購買了！ 💎💎💎", url)
+            logging.error(f"未找到 '立即購買' 按鈕")
+            # print(f"未找到 '立即購買' 按鈕 URL: {url}")
         
         logging.info(f"當前請求次數：{request_count}")
         
@@ -119,7 +119,6 @@ def check_website(url):
 def run_check():
     current_time = datetime.now()
     if current_time.second in [1, 31]:
-        # urls = get_urls_from_file()
         urls = url_Array
         for url in urls:
             check_website(url)
