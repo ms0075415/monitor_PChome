@@ -28,7 +28,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # URL
 url_Array = [
     "https://24h.pchome.com.tw/prod/DGADJN-1900HJ9WF",
-    "https://24h.pchome.com.tw/prod/DGADJN-1900HJ9WI"
+    "https://24h.pchome.com.tw/prod/DGADJN-1900HJ9WI",
+    "https://24h.pchome.com.tw/prod/DYAJHH-A900HRNDA?"
 ]
 
 def get_urls_from_file():
